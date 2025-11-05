@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Dash UI</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+body{
+    background: linear-gradient(145deg,#ff8a05,#ffdd55);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    padding:20px;
+    color:white;
+}
+
+/* HOW TO PLAY BUTTON */
+.how-btn{
+    position:absolute;
+    top:15px;
+    right:15px;
+    background:rgba(255,255,255,0.25);
+    backdrop-filter:blur(12px);
+    border:none;
+    padding:8px 14px;
+    border-radius:14px;
+    color:white;
+    cursor:pointer;
+    font-weight:600;
+    box-shadow:0 0 10px rgba(0,0,0,0.3);
+    transition:0.3s;
+}
+.how-btn:active{
+    transform:scale(0.92);
+}
+
+/* Level Text */
+.info{
+   font-size:28px;
+   font-weight:700;
+   margin-bottom:18px;
+   text-align:center;
+}
+
+/* Header */
+.header{
+    text-align:center;
+    font-size:clamp(16px, 2vw, 24px);
+    margin-bottom:30px;
+    padding:12px 25px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(12px);
+    box-shadow:0 0 20px rgba(0,0,0,0.35);
+}
+
+/* Color Box */
+.color-box{
+    width: min(80vw, 60vh);
+    height: calc(min(80vw, 60vh) / 3);
+    background: linear-gradient(135deg,#ffffff55,#00000022);
+    color: white;
+    font-size: 38px;
+    font-weight: 900;
+    border-radius:20px;
+    border: none;
+    margin-bottom:35px;
+    box-shadow:0 0 30px rgba(0,0,0,0.4);
+    transition:0.3s;
+}
+
+/* Restart */
+.mode{
+  background-color: #2e6468;
+  padding: 10px 18px;
+  border-radius: 16px;
+  margin-bottom:14px;
+  cursor:pointer;
+}
+
+/* Button Container */
+.btn-container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    flex-wrap:nowrap;
+    width:100%;
+    overflow-x:auto;
+    padding:6px;
+}
+
+/* Buttons */
+.btn{
+    width:clamp(55px, 18vw, 100px);
+    height:clamp(55px, 18vw, 100px);
+    border-radius:18px;
+    border:none;
+    cursor:pointer;
+    transition:0.25s;
+    background-size:160%;
+    box-shadow:0 2px 5px rgba(0,0,0,0.35);
+}
+.btn:active{
+    transform:scale(0.9);
+    filter:brightness(1.2);
+}
+
+/* Colors */
+.red{background:linear-gradient(135deg,#ff5757,#e62b2b);}
+.blue{background:linear-gradient(135deg,#4d9bff,#006aff);}
+.green{background:linear-gradient(135deg,#09b127,#4cf886);}
+.brown{background:linear-gradient(135deg,#af6409,#b3540bd7);}
+
+/* HOW TO PLAY POPUP */
+#howBox{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  backdrop-filter:blur(4px);
+}
+#innerHow{
+  width:85%;
+  max-width:450px;
+  background:white;
+  color:#333;
+  padding:20px;
+  border-radius:18px;
+  text-align:center;
+  box-shadow:0 0 18px rgba(0,0,0,0.4);
+}
+.lang-switch{
+   margin:10px auto 18px;
+   padding:7px 15px;
+   border-radius:12px;
+   border:none;
+   cursor:pointer;
+   background:#4b79ff;
+   color:white;
+}
+
+/* Mobile */
+@media(max-width:380px){
+   .btn{ width:65px; height:65px; }
+}
+</style>
+</head>
+
+<body>
+
+<button class="how-btn" id="howPlayBtn">How to Play?</button>
+
+<div class="info">Level-1</div>
+
+<div class="header">Score: 0 | Time: 10s</div>
+
+<button class="color-box"></button>
+<div class="mode">Restart</div>
+
+<div class="btn-container">
+  <button class="btn red" data-color="Red"></button>
+  <button class="btn blue" data-color="Blue"></button>
+  <button class="btn green" data-color="Green"></button>
+  <button class="btn brown" data-color="Brown"></button>
+</div>
+
+<!-- HOW TO PLAY BOX -->
+<div id="howBox">
+  <div id="innerHow">
+    <button class="lang-switch" id="langBtn">Switch to Hindi</button>
+    <p id="howText">
+      A color name appears inside the big box.  
+      Match the name with the correct colored small box below and click it.  
+      Each correct answer increases your score.  
+      With every level, difficulty increases.  
+      Good Luck!
+    </p>
+  </div>
+</div>
+
+<script>
+const tuiii= new Audio("sound/Tuiii.wav");
+const loss= new Audio("sound/loss.wav");
+const wining= new Audio("sound/wining.wav");
+const info = document.querySelector(".info");
+const header = document.querySelector(".header");
+const colorBox = document.querySelector(".color-box");
+const btns = document.querySelectorAll(".btn");
+const mode = document.querySelector(".mode");
+
+// How to play
+const howPlayBtn = document.getElementById("howPlayBtn");
+const howBox = document.getElementById("howBox");
+const howText = document.getElementById("howText");
+const langBtn = document.getElementById("langBtn");
+
+let isHindi=false;
+
+langBtn.onclick = ()=>{
+  isHindi=!isHindi;
+  if(isHindi){
+    langBtn.innerText="Switch to English";
+    howText.innerHTML=`Bade box me rang ka naam diya hota hai.  
+Neeche diye gaye chaar rang ke box me se sahi rang ko pahchaan kar click karna hota hai.  
+Sahi jawab par score badhta hai.  
+Har level ke sath kathinai badh jaati hai.  
+Shubhkamnayein! ✨`;
+  }else{
+    langBtn.innerText="Switch to Hindi";
+    howText.innerHTML=`A color name appears inside the big box.  
+Match the name with the correct colored small box below and click it.  
+Each correct answer increases your score.  
+With every level, difficulty increases.  
+Good Luck! ✨`;
+  }
+};
+
+howPlayBtn.onclick = ()=> howBox.style.display="flex";
+howBox.onclick = (e)=>{ if(e.target===howBox) howBox.style.display="none"; };
+
+// Game Logic
+const colors = [
+  {name:"Red", bg:"linear-gradient(135deg,#ff5757,#e62b2b)"},
+  {name:"Blue", bg:"linear-gradient(135deg,#4d9bff,#006aff)"},
+  {name:"Green", bg:"linear-gradient(135deg,#09b127,#4cf886)"},
+  {name:"Brown", bg:"linear-gradient(135deg,#af6409,#b3540bd7)"}
+];
+
+let previous = null;
+function lavle1(){
+  let r;
+  do{ r = Math.floor(Math.random()*colors.length); }while(r===previous);
+  previous=r;
+  colorBox.style.background=colors[r].bg;
+  colorBox.innerText=colors[r].name;
+}
+lavle1();
+
+let lavle=1, uScore=0, mScore=10, time=10, timer=null;
+const st=()=>{
+  timer=setInterval(()=>{
+    time--;
+    header.innerHTML=`Score: ${uScore}/${mScore} | Time: ${time}s`;
+    if(time===0){
+      clearInterval(timer);
+      colorBox.innerText="⏳ Time Over!";
+      btns.forEach(b=> b.disabled=true);
+      loss.play();
+    }
+  },1000);
+};
+
+btns.forEach((b)=>{
+  b.onclick=()=>{
+    if(b.dataset.color===colorBox.innerText){
+      lavle1();
+      if(timer===null){ st(); }
+      uScore++; mScore--;
+      header.innerHTML=`Score: ${uScore}/${mScore} | Time: ${time}s`;
+      tuiii.currentTime=0; tuiii.play(); tuiii.volume=0.3;
+      win();
+    }else{
+      colorBox.style.color="red";
+      colorBox.style.background="white";
+      colorBox.innerText="❌ Wrong ❌";
+      clearInterval(timer); timer=null;
+      loss.currentTime=0; loss.play();
+      btns.forEach(b=> b.disabled=true);
+    }
+  }
+});
+
+mode.addEventListener("click",()=> restart());
+
+const restart = () => {
+  lavle1();
+  time=10;
+  if((time>0)&&(mScore===0)){
+    mScore=uScore+1; uScore=0; lavle++;
+    info.innerHTML=`Level-${lavle}`;
+  }else{
+    uScore=0; mScore=10;
+    lavle=1;
+    info.innerHTML=`Level-${lavle}`;
+  }
+  colorBox.style.color="white";
+  clearInterval(timer);
+  st(); 
+  header.innerHTML=`Score: ${uScore}/${mScore} | Time: ${time}s`;
+  btns.forEach((b)=>{ b.disabled=false; });
+};
+
+const win=()=>{
+  if((time>0)&&(mScore===0)){
+    clearInterval(timer);
+    colorBox.style.color="green";
+    colorBox.style.background="white";
+    colorBox.innerHTML="You Win!";
+    wining.currentTime=0;
+    wining.play();
+    wining.volume=1.0;
+  }
+}
+</script>
+</body>
+</html>
